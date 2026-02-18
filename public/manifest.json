@@ -1,0 +1,112 @@
+{
+  "manifest_version": 3,
+  "name": "fees.fun",
+  "description": "Solana extension by fees.fun - powerful tools for the Solana ecosystem.",
+  "version": "1.0.0",
+  "permissions": ["activeTab", "storage", "alarms", "declarativeNetRequest"],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "axiom_csp",
+        "enabled": true,
+        "path": "rules/axiom-csp.json"
+      }
+    ]
+  },
+  "host_permissions": [
+    "*://rapidlaunch.io/*",
+    "*://*.rapidlaunch.io/*",
+    "*://app.uxento.io/*",
+    "*://uxento.io/*",
+    "*://j7tracker.io/*",
+    "*://*.j7tracker.io/*",
+    "*://j7tracker.com/*",
+    "*://*.j7tracker.com/*",
+    "*://fees.fun/*",
+    "*://axiom.trade/*",
+    "*://*.axiom.trade/*",
+    "*://localhost/*",
+    "*://*.fees.fun/*"
+  ],
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "icons/feesfun.png",
+      "48": "icons/feesfun.png",
+      "128": "icons/feesfun.png"
+    }
+  },
+  "icons": {
+    "16": "icons/feesfun.png",
+    "48": "icons/feesfun.png",
+    "128": "icons/feesfun.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://rapidlaunch.io/*",
+        "*://*.rapidlaunch.io/*",
+        "*://app.uxento.io/*",
+        "*://uxento.io/*",
+        "*://j7tracker.io/*",
+        "*://*.j7tracker.io/*",
+        "*://j7tracker.com/*",
+        "*://*.j7tracker.com/*",
+        "*://axiom.trade/*",
+        "*://*.axiom.trade/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://rapidlaunch.io/*",
+        "*://*.rapidlaunch.io/*",
+        "*://app.uxento.io/*",
+        "*://uxento.io/*",
+        "*://j7tracker.io/*",
+        "*://*.j7tracker.io/*",
+        "*://j7tracker.com/*",
+        "*://*.j7tracker.com/*",
+        "*://axiom.trade/*",
+        "*://*.axiom.trade/*"
+      ],
+      "js": ["shield.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://app.uxento.io/*", "*://uxento.io/*"],
+      "js": ["ws-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["*://rapidlaunch.io/*", "*://*.rapidlaunch.io/*"],
+      "js": ["http-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "*://j7tracker.io/*",
+        "*://*.j7tracker.io/*",
+        "*://j7tracker.com/*",
+        "*://*.j7tracker.com/*"
+      ],
+      "js": ["j7-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["*://axiom.trade/*", "*://*.axiom.trade/*"],
+      "js": ["axiom-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}
