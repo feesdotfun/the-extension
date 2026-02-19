@@ -98,6 +98,21 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       },
     },
   }),
+  "axiom-cache-bridge": defineConfig({
+    resolve: {
+      alias: { "@": resolve(__dirname, "./src") },
+    },
+    build: {
+      outDir: "dist",
+      emptyOutDir: false,
+      lib: {
+        entry: resolve(__dirname, "src/content/axiom-cache-bridge.ts"),
+        name: "axiomCacheBridge",
+        formats: ["iife"],
+        fileName: () => "axiom-cache-bridge.js",
+      },
+    },
+  }),
   "axiom-interceptor": defineConfig({
     resolve: {
       alias: { "@": resolve(__dirname, "./src") },

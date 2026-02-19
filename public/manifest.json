@@ -103,6 +103,11 @@
     },
     {
       "matches": ["*://axiom.trade/*", "*://*.axiom.trade/*"],
+      "js": ["axiom-cache-bridge.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://axiom.trade/*", "*://*.axiom.trade/*"],
       "js": ["axiom-interceptor.js"],
       "run_at": "document_start",
       "world": "MAIN"

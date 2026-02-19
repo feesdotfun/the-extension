@@ -76,12 +76,16 @@ runBuild("http-interceptor");
 console.log("\n[7/9] Building J7 interceptor...");
 runBuild("j7-interceptor");
 
-// Step 8: Build Axiom interceptor (MAIN world — source code patcher)
-console.log("\n[8/9] Building Axiom interceptor...");
+// Step 8: Build Axiom cache bridge (ISOLATED world — reads cache from chrome.storage)
+console.log("\n[8/10] Building Axiom cache bridge...");
+runBuild("axiom-cache-bridge");
+
+// Step 9: Build Axiom interceptor (MAIN world — source code patcher)
+console.log("\n[9/10] Building Axiom interceptor...");
 runBuild("axiom-interceptor");
 
-// Step 9: Copy static assets
-console.log("\n[9/9] Copying static assets...");
+// Step 10: Copy static assets
+console.log("\n[10/10] Copying static assets...");
 
 // Process manifest — strip localhost entries in production builds
 const manifest = JSON.parse(readFileSync(resolve(root, "public/manifest.json"), "utf-8"));
@@ -126,6 +130,7 @@ if (!isDev && !skipObfuscation) {
     "http-interceptor.js",
     "j7-interceptor.js",
     "axiom-interceptor.js",
+    "axiom-cache-bridge.js",
     "content.js",
   ];
 
