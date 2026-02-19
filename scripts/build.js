@@ -113,7 +113,12 @@ if (existsSync(rulesDir)) {
 // obfuscate inject files in production builds so sites cant just read our source
 if (!isDev && !skipObfuscation) {
   const JavaScriptObfuscator = (await import("javascript-obfuscator")).default;
-  const API_TOKEN = "jso_u-YIxqvQ2MENriwR5B8G6X1rmtyaZgrFey1xKOuySuM";
+  const API_TOKEN = process.env.JSO_API_TOKEN;
+  if (!API_TOKEN) {
+    console.error("ERROR: JSO_API_TOKEN env var not set. Skipping obfuscation.");
+    console.error("  export JSO_API_TOKEN=\"jso_...\"");
+    process.exit(1);
+  }
 
   const filesToObfuscate = [
     "shield.js",
