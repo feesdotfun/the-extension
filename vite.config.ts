@@ -53,7 +53,7 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       },
     },
   }),
-  "ws-interceptor": defineConfig({
+  "uxento": defineConfig({
     resolve: {
       alias: { "@": resolve(__dirname, "./src") },
     },
@@ -61,14 +61,14 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       outDir: "dist",
       emptyOutDir: false,
       lib: {
-        entry: resolve(__dirname, "src/inject/ws-interceptor.ts"),
-        name: "wsInterceptor",
+        entry: resolve(__dirname, "src/inject/uxento.ts"),
+        name: "uxento",
         formats: ["iife"],
-        fileName: () => "ws-interceptor.js",
+        fileName: () => "uxento.js",
       },
     },
   }),
-  "http-interceptor": defineConfig({
+  "rapidlaunch": defineConfig({
     resolve: {
       alias: { "@": resolve(__dirname, "./src") },
     },
@@ -76,14 +76,14 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       outDir: "dist",
       emptyOutDir: false,
       lib: {
-        entry: resolve(__dirname, "src/inject/http-interceptor.ts"),
-        name: "httpInterceptor",
+        entry: resolve(__dirname, "src/inject/rapidlaunch.ts"),
+        name: "rapidlaunch",
         formats: ["iife"],
-        fileName: () => "http-interceptor.js",
+        fileName: () => "rapidlaunch.js",
       },
     },
   }),
-  "j7-interceptor": defineConfig({
+  "j7tracker": defineConfig({
     resolve: {
       alias: { "@": resolve(__dirname, "./src") },
     },
@@ -91,10 +91,10 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       outDir: "dist",
       emptyOutDir: false,
       lib: {
-        entry: resolve(__dirname, "src/inject/j7-interceptor.ts"),
-        name: "j7Interceptor",
+        entry: resolve(__dirname, "src/inject/j7tracker.ts"),
+        name: "j7tracker",
         formats: ["iife"],
-        fileName: () => "j7-interceptor.js",
+        fileName: () => "j7tracker.js",
       },
     },
   }),
@@ -113,7 +113,7 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       },
     },
   }),
-  "axiom-interceptor": defineConfig({
+  "aegis-preload-strip": defineConfig({
     resolve: {
       alias: { "@": resolve(__dirname, "./src") },
     },
@@ -121,14 +121,14 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       outDir: "dist",
       emptyOutDir: false,
       lib: {
-        entry: resolve(__dirname, "src/inject/axiom-interceptor.ts"),
-        name: "axiomInterceptor",
+        entry: resolve(__dirname, "src/inject/aegis-modulepreload-strip.ts"),
+        name: "aegisPreloadStrip",
         formats: ["iife"],
-        fileName: () => "axiom-interceptor.js",
+        fileName: () => "aegis-preload-strip.js",
       },
     },
   }),
-  shield: defineConfig({
+  "axiom": defineConfig({
     resolve: {
       alias: { "@": resolve(__dirname, "./src") },
     },
@@ -136,10 +136,10 @@ const configs: Record<string, ReturnType<typeof defineConfig>> = {
       outDir: "dist",
       emptyOutDir: false,
       lib: {
-        entry: resolve(__dirname, "src/inject/shield.ts"),
-        name: "shield",
+        entry: resolve(__dirname, "src/inject/axiom.ts"),
+        name: "axiom",
         formats: ["iife"],
-        fileName: () => "shield.js",
+        fileName: () => "axiom.js",
       },
     },
   }),

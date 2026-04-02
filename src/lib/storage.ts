@@ -188,3 +188,43 @@ export async function isPromoDismissed(): Promise<boolean> {
   if (!dismissedAt) return false;
   return Date.now() - dismissedAt < PROMO_DISMISS_DURATION;
 }
+
+// ─── Extension Settings ──────────
+
+const EXTENSION_SETTINGS_KEY = "feesfun-settings";
+
+export interface ExtensionSettings {
+  localSigning: boolean;
+  watermarksEnabled: boolean;
+}
+
+const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
+  localSigning: true,
+  watermarksEnabled: true,
+};
+
+export async function getExtensionSettings(): Promise<ExtensionSettings> {
+  return new Promise((resolve) => {
+    if (typeof chrome !== "undefined" && chrome.storage) {
+      chrome.storage.local.get(EXTENSION_SETTINGS_KEY, (result) => {
+        resolve({ ...DEFAULT_EXTENSION_SETTINGS, ...(result[EXTENSION_SETTINGS_KEY] ?? {}) });
+      });
+    } else {
+      const stored = localStorage.getItem(EXTENSION_SETTINGS_KEY);
+      resolve({ ...DEFAULT_EXTENSION_SETTINGS, ...(stored ? JSON.parse(stored) : {}) });
+    }
+  });
+}
+
+export async function setExtensionSettings(updates: Partial<ExtensionSettings>): Promise<void> {
+  const current = await getExtensionSettings();
+  const merged = { ...current, ...updates };
+  return new Promise((resolve) => {
+    if (typeof chrome !== "undefined" && chrome.storage) {
+      chrome.storage.local.set({ [EXTENSION_SETTINGS_KEY]: merged }, resolve);
+    } else {
+      localStorage.setItem(EXTENSION_SETTINGS_KEY, JSON.stringify(merged));
+      resolve();
+    }
+  });
+}

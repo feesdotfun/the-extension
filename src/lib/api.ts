@@ -111,7 +111,7 @@ export const SERVERS = [
 ] as const;
 
 export const DEV_SERVER = {
-  id: "dev" as const, label: "Local", wsUrl: "ws://localhost:5001", httpUrl: "http://localhost:5001",
+  id: "dev" as const, label: "DEV", wsUrl: "ws://localhost:3001", httpUrl: "http://localhost:3001",
 } as const;
 
 export type ServerId = typeof SERVERS[number]["id"] | "auto" | "dev";
@@ -197,4 +197,34 @@ export async function apiGetSavings(): Promise<SavingsResponse> {
 
 export async function apiCompleteOnboarding(): Promise<{ success: boolean }> {
   return request("/api/onboarding/complete", { method: "POST" });
+}
+
+// --- Subscription ---
+
+export interface SubscriptionStatus {
+  active: boolean;
+  expiresAt: string | null;
+  daysRemaining: number | null;
+  feePercent: number;
+}
+
+export interface SubscriptionPrice {
+  priceUsd: number;
+  costSol: number;
+  costUsd: number;
+}
+
+export async function apiGetSubscription(): Promise<SubscriptionStatus> {
+  return request("/api/subscription");
+}
+
+export async function apiGetSubscriptionPrice(): Promise<SubscriptionPrice> {
+  return request("/api/subscription/price");
+}
+
+export async function apiActivateSubscription(txSignature: string): Promise<SubscriptionStatus> {
+  return request("/api/subscription/activate", {
+    method: "POST",
+    body: JSON.stringify({ txSignature }),
+  });
 }

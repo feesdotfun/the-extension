@@ -1,0 +1,17 @@
+[
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        { "header": "Content-Security-Policy", "operation": "remove" },
+        { "header": "Content-Security-Policy-Report-Only", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "requestDomains": ["j7tracker.io", "j7tracker.com", "rapidlaunch.io", "uxento.io", "app.uxento.io"],
+      "resourceTypes": ["main_frame", "sub_frame"]
+    }
+  }
+]

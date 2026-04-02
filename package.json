@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "BUILD_TARGET=popup vite build --watch --mode development",
     "dev:all": "node scripts/build.js --dev",
+    "dev:prod": "node scripts/build.js --dev --prod-api",
     "build": "node scripts/build.js",
     "build:fast": "node scripts/build.js --no-obfuscate",
     "build:popup": "BUILD_TARGET=popup vite build",
@@ -19,6 +20,7 @@
     "@turnkey/crypto": "^2.8.10",
     "@turnkey/sdk-server": "^5.0.3",
     "bs58": "^4.0.1",
+    "fflate": "^0.8.2",
     "framer-motion": "^12.34.1",
     "lucide-react": "^0.544.0",
     "react": "^18.3.1",

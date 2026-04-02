@@ -3,13 +3,18 @@
   "name": "fees.fun",
   "description": "Solana extension by fees.fun - powerful tools for the Solana ecosystem.",
   "version": "1.0.0",
-  "permissions": ["activeTab", "storage", "alarms", "declarativeNetRequest"],
+  "permissions": ["activeTab", "storage", "alarms", "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "scripting", "cookies"],
   "declarative_net_request": {
     "rule_resources": [
       {
         "id": "axiom_csp",
         "enabled": true,
         "path": "rules/axiom-csp.json"
+      },
+      {
+        "id": "j7_csp",
+        "enabled": true,
+        "path": "rules/j7-csp.json"
       }
     ]
   },
@@ -25,7 +30,9 @@
     "*://fees.fun/*",
     "*://axiom.trade/*",
     "*://*.axiom.trade/*",
-    "*://*.fees.fun/*"
+    "*://*.fees.fun/*",
+    "http://localhost/*",
+    "http://localhost:3000/*"
   ],
   "action": {
     "default_popup": "src/popup/index.html",
@@ -53,12 +60,11 @@
         "*://j7tracker.io/*",
         "*://*.j7tracker.io/*",
         "*://j7tracker.com/*",
-        "*://*.j7tracker.com/*",
-        "*://axiom.trade/*",
-        "*://*.axiom.trade/*"
+        "*://*.j7tracker.com/*"
       ],
-      "js": ["content.js"],
-      "run_at": "document_idle"
+      "js": ["aegis-preload-strip.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
     },
     {
       "matches": [
@@ -73,20 +79,18 @@
         "*://axiom.trade/*",
         "*://*.axiom.trade/*"
       ],
-      "js": ["shield.js"],
-      "run_at": "document_start",
-      "world": "MAIN",
-      "all_frames": true
+      "js": ["content.js"],
+      "run_at": "document_idle"
     },
     {
-      "matches": ["*://app.uxento.io/*", "*://uxento.io/*"],
-      "js": ["ws-interceptor.js"],
+      "matches": ["*://rapidlaunch.io/*", "*://*.rapidlaunch.io/*"],
+      "js": ["rapidlaunch.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["*://rapidlaunch.io/*", "*://*.rapidlaunch.io/*"],
-      "js": ["http-interceptor.js"],
+      "matches": ["*://app.uxento.io/*", "*://uxento.io/*"],
+      "js": ["uxento.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
@@ -97,7 +101,7 @@
         "*://j7tracker.com/*",
         "*://*.j7tracker.com/*"
       ],
-      "js": ["j7-interceptor.js"],
+      "js": ["j7tracker.js"],
       "run_at": "document_start",
       "world": "MAIN"
     },
@@ -108,7 +112,7 @@
     },
     {
       "matches": ["*://axiom.trade/*", "*://*.axiom.trade/*"],
-      "js": ["axiom-interceptor.js"],
+      "js": ["axiom.js"],
       "run_at": "document_start",
       "world": "MAIN"
     }

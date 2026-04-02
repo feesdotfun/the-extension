@@ -2,7 +2,9 @@
  * Uxento.io - Site-specific background module
  *
  * WS interception is fully self-contained in the MAIN world script
- * (ws-interceptor.ts) — no bridge or background handler needed.
+ * (uxento.ts) — no bridge or background handler needed.
+ * Empty stubs exported so the SITES array loop in background.ts can
+ * call setup/applyRules/removeRules uniformly without null checks.
  */
 
 export function setup() {}

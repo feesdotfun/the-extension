@@ -4,7 +4,7 @@ import {
   Wallet as WalletIcon,
   Radar,
   TrendingDown,
-  LogOut,
+  Settings,
   ChevronRight,
   Plus,
   Download,
@@ -17,13 +17,14 @@ import {
   Globe,
   X,
   Zap,
+  Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { error as logError } from "@/lib/log";
 import { getTurnkeySession, getDeployerConfig, setDeployerConfig, setTurnkeySession, isPromoDismissed, setPromoDismissedAt } from "@/lib/storage";
 import { getTurnkeyClient, listWallets, exportAccountKey } from "@/lib/turnkey";
 import { syncCache, getUncachedAddresses, cacheWallet } from "@/lib/wallet-cache";
-import { apiRefreshTurnkeySession, apiGetDeployerConfig, apiSetDeployerConfig, apiGetPromotions, apiGetSavings } from "@/lib/api";
+import { apiRefreshTurnkeySession, apiGetDeployerConfig, apiSetDeployerConfig, apiGetPromotions, apiGetSavings, apiGetSubscription } from "@/lib/api";
 import type { PlatformSavings } from "@/lib/api";
 import { getSolanaBalances, formatSol } from "@/lib/solana";
 import { fetchSolPrice, formatUsd } from "@/lib/solPrice";
@@ -35,6 +36,7 @@ import { ImportWallet } from "./ImportWallet";
 import { WalletDetail } from "./WalletDetail";
 import { TrackerManager } from "./TrackerManager";
 import { PingIndicator } from "./PingIndicator";
+import { SettingsView } from "./SettingsView";
 
 interface WalletManagerProps {
   user: AuthUser;
@@ -82,6 +84,7 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
   const [showImport, setShowImport] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [session, setSession] = useState<TurnkeySession | null>(null);
   const [balances, setBalances] = useState<Record<string, number>>({});
   const [deployerConfig, setDeployerConfigState] = useState<DeployerConfig>({});
@@ -90,6 +93,7 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
   const [savingsData, setSavingsData] = useState<{ total: number; txCount: number; byPlatform: Record<string, PlatformSavings> } | null>(null);
   const [savingsLoading, setSavingsLoading] = useState(false);
   const [solPrice, setSolPrice] = useState<number | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
   const balanceTimerRef = useRef<ReturnType<typeof setInterval>>();
   const cacheTimerRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -195,6 +199,7 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
     loadWallets();
     loadSavings();
     fetchSolPrice().then(setSolPrice).catch(() => {});
+    apiGetSubscription().then((s) => { if (s?.active) setIsPremium(true); }).catch(() => {});
     apiGetPromotions()
       .then(async ({ promotions }) => {
         if (promotions.length > 0) {
@@ -275,7 +280,20 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
       });
   }
 
-  // Sub-page renders (unchanged)
+  // Sub-page renders
+  if (showSettings) {
+    return (
+      <SettingsView
+        user={user}
+        wallets={wallets}
+        deployerConfig={deployerConfig}
+        onDeployerConfigChange={handleDeployerConfigChanged}
+        onBack={() => setShowSettings(false)}
+        onLogout={onLogout}
+      />
+    );
+  }
+
   if (showCreate && session) {
     return (
       <CreateWallet
@@ -366,9 +384,15 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                 Fees<span className="text-primary">.fun</span>
               </h1>
               {user.referralCode ? (
-                <p className="text-[11px] text-muted-foreground font-mono font-medium truncate max-w-[160px]">
-                  @{user.referralCode.code}
-                </p>
+                isPremium ? (
+                  <p className="text-[11px] font-mono font-bold truncate max-w-[160px]" style={{ background: "linear-gradient(135deg, #f6d365, #fda085, #f6d365)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    @{user.referralCode.code}
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground font-mono font-medium truncate max-w-[160px]">
+                    @{user.referralCode.code}
+                  </p>
+                )
               ) : (
                 <p className="text-[11px] text-muted-foreground font-medium truncate max-w-[160px]">
                   {user.username.split("_")[0]}
@@ -398,11 +422,11 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
               </div>
             )}
             <button
-              onClick={onLogout}
+              onClick={() => setShowSettings(true)}
               className="w-9 h-9 rounded-xl flex items-center justify-center glass-subtle text-muted-foreground hover:text-foreground transition-all"
-              aria-label="Log out"
+              aria-label="Settings"
             >
-              <LogOut className="w-4 h-4" />
+              <Settings className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -684,7 +708,13 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                 Start using fees.fun to see how much you save on fees
               </p>
             </div>
-          ) : (
+          ) : (() => {
+            // green for normal, gold for premium
+            const c = isPremium
+              ? { base: "45 100% 50%", light: "45 100% 55%", dark: "45 100% 42%", grad: "linear-gradient(90deg, hsl(40 100% 45%), hsl(45 100% 55%))" }
+              : { base: "152 100% 38%", light: "152 100% 50%", dark: "152 100% 38%", grad: "linear-gradient(90deg, hsl(152 100% 38%), hsl(152 100% 50%))" };
+
+            return (
             <div className="flex flex-col gap-3">
               {/* Hero savings card */}
               <motion.div
@@ -693,27 +723,24 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="relative rounded-2xl overflow-hidden"
               >
-                {/* Background effects */}
                 <div
                   className="absolute inset-0"
-                  style={{ background: "linear-gradient(135deg, hsl(152 100% 38% / 0.08), hsl(213 100% 50% / 0.06))" }}
+                  style={{ background: `linear-gradient(135deg, hsl(${c.base} / 0.08), hsl(213 100% 50% / 0.06))` }}
                 />
                 <div
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full blur-[60px]"
-                  style={{ background: "hsl(152 100% 38% / 0.15)", animation: "pulseSoft 3s ease-in-out infinite" }}
+                  style={{ background: `hsl(${c.base} / 0.15)`, animation: "pulseSoft 3s ease-in-out infinite" }}
                 />
 
-                {/* Expanding rings */}
                 <div
                   className="absolute top-1/2 left-1/2 w-24 h-24 border rounded-full pointer-events-none"
-                  style={{ borderColor: "hsl(152 100% 38% / 0.15)", animation: "ringExpand 3s ease-out infinite" }}
+                  style={{ borderColor: `hsl(${c.base} / 0.15)`, animation: "ringExpand 3s ease-out infinite" }}
                 />
                 <div
                   className="absolute top-1/2 left-1/2 w-24 h-24 border rounded-full pointer-events-none"
-                  style={{ borderColor: "hsl(152 100% 38% / 0.1)", animation: "ringExpand 3s ease-out infinite 1s" }}
+                  style={{ borderColor: `hsl(${c.base} / 0.1)`, animation: "ringExpand 3s ease-out infinite 1s" }}
                 />
 
-                {/* Sparkle particles */}
                 {SAVINGS_SPARKLES.map((s, i) => (
                   <div
                     key={i}
@@ -724,24 +751,23 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                       right: "right" in s ? s.right : undefined,
                       width: s.size,
                       height: s.size,
-                      background: "hsl(152 100% 60%)",
+                      background: `hsl(${c.light})`,
                       animation: `sparkle 2.5s ease-in-out infinite ${s.delay}`,
-                      boxShadow: "0 0 6px hsl(152 100% 50% / 0.6)",
+                      boxShadow: `0 0 6px hsl(${c.light} / 0.6)`,
                     }}
                   />
                 ))}
 
-                {/* Content */}
                 <div
                   className="relative p-6 text-center glass-subtle rounded-2xl"
-                  style={{ borderColor: "hsl(152 100% 38% / 0.15)" }}
+                  style={{ borderColor: `hsl(${c.base} / 0.15)` }}
                 >
                   <motion.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
                     className="text-[10px] uppercase tracking-[0.25em] font-bold mb-3"
-                    style={{ color: "hsl(152 100% 50% / 0.7)" }}
+                    style={{ color: `hsl(${c.light} / 0.7)` }}
                   >
                     Total Saved
                   </motion.p>
@@ -754,8 +780,8 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                     <p
                       className="text-4xl font-bold tracking-tight leading-none font-display"
                       style={{
-                        color: "hsl(152 100% 45%)",
-                        textShadow: "0 0 30px hsl(152 100% 50% / 0.4), 0 0 60px hsl(152 100% 50% / 0.15)",
+                        color: `hsl(${c.light})`,
+                        textShadow: `0 0 30px hsl(${c.light} / 0.4), 0 0 60px hsl(${c.light} / 0.15)`,
                       }}
                     >
                       ${solPrice ? savingsUsd.toFixed(2) : (savingsSol * 150).toFixed(2)}
@@ -773,23 +799,23 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                   >
                     <div
                       className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
-                      style={{ background: "hsl(152 100% 38% / 0.1)", border: "1px solid hsl(152 100% 38% / 0.15)" }}
+                      style={{ background: `hsl(${c.base} / 0.1)`, border: `1px solid hsl(${c.base} / 0.15)` }}
                     >
                       <div
                         className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: "hsl(152 100% 50%)", boxShadow: "0 0 6px hsl(152 100% 50% / 0.6)" }}
+                        style={{ background: `hsl(${c.light})`, boxShadow: `0 0 6px hsl(${c.light} / 0.6)` }}
                       />
-                      <span className="text-[10px] font-semibold font-mono" style={{ color: "hsl(152 100% 50%)" }}>
+                      <span className="text-[10px] font-semibold font-mono" style={{ color: `hsl(${c.light})` }}>
                         {Math.round(savingsTxCount)} tx{savingsData.txCount !== 1 ? "s" : ""}
                       </span>
                     </div>
                     {savingsData.total > 0 && (
                       <div
                         className="flex items-center gap-1 px-2.5 py-1 rounded-lg"
-                        style={{ background: "hsl(152 100% 38% / 0.1)", border: "1px solid hsl(152 100% 38% / 0.15)" }}
+                        style={{ background: `hsl(${c.base} / 0.1)`, border: `1px solid hsl(${c.base} / 0.15)` }}
                       >
-                        <ArrowDownRight className="w-3 h-3" style={{ color: "hsl(152 100% 50%)" }} />
-                        <span className="text-[10px] font-semibold" style={{ color: "hsl(152 100% 50%)" }}>
+                        <ArrowDownRight className="w-3 h-3" style={{ color: `hsl(${c.light})` }} />
+                        <span className="text-[10px] font-semibold" style={{ color: `hsl(${c.light})` }}>
                           {(() => {
                             const totalPlatform = Object.values(savingsData.byPlatform).reduce((s, p) => s + p.platformFees, 0);
                             return totalPlatform > 0 ? ((savingsData.total / totalPlatform) * 100).toFixed(0) : "0";
@@ -818,7 +844,7 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                       transition={{ delay: 0.6 + i * 0.12, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                       className="glass-subtle rounded-xl px-4 py-3 transition-all group cursor-pointer"
                       whileHover={{ scale: 1.01 }}
-                      style={{ borderColor: "hsl(152 100% 38% / 0.08)" }}
+                      style={{ borderColor: `hsl(${c.base} / 0.08)` }}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 border border-border/40 group-hover:border-accent/25 transition-all">
@@ -833,7 +859,7 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                             <span className="text-xs font-semibold text-foreground/80 group-hover:text-foreground transition-colors">
                               {platform?.name || platformId}
                             </span>
-                            <span className="text-xs font-bold font-mono" style={{ color: "hsl(152 100% 50%)" }}>
+                            <span className="text-xs font-bold font-mono" style={{ color: `hsl(${c.light})` }}>
                               {solPrice ? formatUsd(stats.saved * solPrice) : `${stats.saved.toFixed(4)} SOL`}
                             </span>
                           </div>
@@ -844,8 +870,8 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                               transition={{ delay: 1 + i * 0.15, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                               className="h-full rounded-full"
                               style={{
-                                background: "linear-gradient(90deg, hsl(152 100% 38%), hsl(152 100% 50%))",
-                                boxShadow: "0 0 8px hsl(152 100% 50% / 0.3)",
+                                background: c.grad,
+                                boxShadow: `0 0 8px hsl(${c.light} / 0.3)`,
                               }}
                             />
                           </div>
@@ -854,8 +880,8 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                               {stats.txCount} tx{stats.txCount !== 1 ? "s" : ""}
                             </span>
                             <div className="flex items-center gap-1">
-                              <ArrowDownRight className="w-3 h-3" style={{ color: "hsl(152 100% 45%)" }} />
-                              <span className="text-[10px] font-semibold" style={{ color: "hsl(152 100% 45%)" }}>
+                              <ArrowDownRight className="w-3 h-3" style={{ color: `hsl(${c.dark})` }} />
+                              <span className="text-[10px] font-semibold" style={{ color: `hsl(${c.dark})` }}>
                                 {savingsPercent}% less
                               </span>
                             </div>
@@ -866,8 +892,35 @@ export function WalletManager({ user, onLogout }: WalletManagerProps) {
                   );
                 })}
               </div>
+
+              {/* Premium upsell */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
+                className="rounded-xl p-4 mt-1"
+                style={{
+                  background: "linear-gradient(135deg, hsl(45 100% 50% / 0.06), hsl(35 100% 50% / 0.03))",
+                  border: "1px solid hsl(45 100% 50% / 0.12)",
+                }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="w-4 h-4 text-amber-400" />
+                  <span className="text-[12px] font-semibold text-amber-400">Want to save even more?</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">
+                  Go Premium for $100/mo — drop your fees to <span className="text-amber-400 font-semibold">0.25%</span> and support development.
+                </p>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="w-full py-2 rounded-lg text-[11px] font-semibold bg-amber-400/10 text-amber-400 hover:bg-amber-400/20 transition-all border border-amber-400/15"
+                >
+                  View Premium in Settings
+                </button>
+              </motion.div>
             </div>
-          )}
+          );
+          })()}
         </div>
       )}
 
